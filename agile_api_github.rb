@@ -17,12 +17,13 @@ module AgileToolBelt
       @config["rep_owner"] = git_config[0];
       @config["rep_name"] = git_config[1];
 
-      @conn = Faraday.new(:url => "#{@config["url"]}/repos/#{@config["rep_owner"]}/#{@config["rep_name"]}",
+      @conn = Faraday.new(:url => @config["url"],
                           :proxy => @config["proxy"],
                           :ssl => {:verify => false}) do |faraday|
         faraday.request  :url_encoded
         faraday.adapter  Faraday.default_adapter
       end
+      @api_uri = "/repos/#{@config["rep_owner"]}/#{@config["rep_name"]}"
     end
 
     # = test
@@ -30,6 +31,7 @@ module AgileToolBelt
     def test
 
       response = @conn.get do |req|
+        req.url(@api_uri)
         req.headers['Authorization'] = "token #{@config["git_token"]}"
       end
 
@@ -61,7 +63,7 @@ module AgileToolBelt
       }
 
       response = @conn.post do |req|
-        req.url "/pulls"
+        req.url "#{@api_uri}/pulls"
         req.headers['Authorization'] = "token #{@config["git_token"]}"
         req.body = pull_request.to_json
       end
@@ -93,7 +95,7 @@ module AgileToolBelt
       data = {"state"=>"closed"}
 
       response = @conn.patch do |req|
-        req.url "/pulls/#{number}"
+        req.url "#{@api_uri}/pulls/#{number}"
         req.headers['Authorization'] = "token #{@config["git_token"]}"
         req.body = data.to_json
       end
@@ -120,7 +122,7 @@ module AgileToolBelt
       # return parsed pull requests or raise an exception
       def get_pull_requests branch_name
         response = @conn.get do |req|
-          req.url "/pulls"
+          req.url "#{@api_uri}/pulls"
           req.headers['Authorization'] = "token #{@config["git_token"]}"
         end
         handle_response response
@@ -142,16 +144,16 @@ module AgileToolBelt
 
         if parsed.instance_of? Hash
 
-          puts "github: #{parsed["message"]}" if parsed.has_key? "message"
+          puts "github message: #{parsed["message"]}" if parsed.has_key? "message"
           if parsed.has_key? "errors"
             parsed["errors"].each do |error|
-              errors.push "github: #{error["message"]}"
+              errors.push "github error: #{error["message"]}"
             end
           end
         end
 
         if response.status != expected_code
-          errors.shift "HTTP: Invalid response code (#{response.status}) when fetching pull request"
+          errors.unshift "HTTP: Invalid response code (#{response.status}) when fetching pull request"
         end
 
         return parsed if errors.empty?
