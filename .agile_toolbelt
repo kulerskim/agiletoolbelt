@@ -1,0 +1,23 @@
+#
+# Agile Toolbelt configuration
+#
+# It's parsed by parseConfig gem, please visit https://github.com/derks/ruby-parseconfig/ for details
+# Please place this file in user's directory
+
+proxy='http://linproxy.emea.group.local:80'
+
+[Jira]
+#API URL
+address='<JIRA address>'
+#JIRA username
+user='<JIRA user>'
+#JIRA token is simply base65 encoded username:password
+auth='<JIRA token>'
+
+
+[Github]
+#API URL
+url='https://api.github.com'
+#Github token is created within section 'Personal API Access Tokens'
+#in account settings
+git_token='<Personal API Access Token>'
