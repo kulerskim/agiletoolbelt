@@ -42,6 +42,9 @@ module AgileToolBelt
       end
 
       config = ParseConfig.new(ENV['HOME']+'/.agile_toolbelt')
+      config.params.each do |k,v|
+        config[available_apis[@api]][k] = v if v.is_a? String
+      end
 
       @api_instance = AgileToolBelt.const_get(@class_name).new config[available_apis[@api]]
 
