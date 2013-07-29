@@ -7,6 +7,8 @@ module AgileToolBelt
   # Provider for JIRA API
   class AgileApiJira
 
+    # = initialize
+    # just setup connection
     def initialize(config)
       @config=config
       @conn = Faraday.new(:url => @config['address']) do |faraday|
@@ -17,6 +19,8 @@ module AgileToolBelt
       end
     end
 
+    # = transition
+    # Do a transition on an issue
     def transition(issue, transition_name)
 
       response = @conn.get do |req|
@@ -58,6 +62,8 @@ module AgileToolBelt
     end
 
     private
+    # = handle_response
+    # Handle JIRA API response
     def handle_response(response)
       if response.status >= 400
         errors = JSON.parse(response.errors)
