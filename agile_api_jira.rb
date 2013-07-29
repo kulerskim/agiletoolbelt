@@ -7,17 +7,21 @@ module AgileToolBelt
   # Provider for JIRA API
   class AgileApiJira
 
-    def transition(config, issue, transition_name)
-      conn = Faraday.new(:url => config['address']) do |faraday|
+    def initialize(config)
+      @config=config
+      @conn = Faraday.new(:url => @config['address']) do |faraday|
         faraday.request  :url_encoded             # form-encode POST params
         #faraday.response :logger                  # log requests to STDOUT
         faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
         faraday.proxy ENV['http_proxy']
       end
+    end
 
-      response = conn.get do |req|
+    def transition(issue, transition_name)
+
+      response = @conn.get do |req|
         req.url "/rest/api/latest/issue/#{issue}/transitions?expand=transitions.fields"
-        req.headers['Authorization'] = "Basic #{config['auth']}"
+        req.headers['Authorization'] = "Basic #{@config['auth']}"
       end
 
       parsed = handle_response(response)
@@ -25,6 +29,11 @@ module AgileToolBelt
       parsed["transitions"].each do |transition|
         if transition["name"].upcase == transition_name.upcase
           @transition_id = transition["id"]
+          if transition["assignee"] != nil
+            @assignee = '"fields":{ "assignee": { "name": "'+@config['user']+'" } },'
+          else
+            @assignee = ''
+          end
         end
       end
 
@@ -32,11 +41,11 @@ module AgileToolBelt
         raise "Wrong transition"
       end
 
-      response = conn.post do |req|
+      response = @conn.post do |req|
         req.url "/rest/api/latest/issue/#{issue}/transitions?expand=transitions.fields"
         req.headers['Content-Type'] = 'application/json'
-        req.headers['Authorization'] = "Basic #{config['auth']}"
-        req.body = '{ "transition" :{ "id": "'+@transition_id+'" } }'
+        req.headers['Authorization'] = "Basic #{@config['auth']}"
+        req.body = '{ '+@assignee+' "transition" :{ "id": "'+@transition_id+'" } }'
       end
 
       handle_response(response)
@@ -51,7 +60,7 @@ module AgileToolBelt
     private
     def handle_response(response)
       if response.status >= 400
-        errors = JSON.parse(response.errorMessages)
+        errors = JSON.parse(response.errors)
         raise  errors.join()
       else
         if response.status == 204
