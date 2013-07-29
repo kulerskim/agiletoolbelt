@@ -48,6 +48,7 @@ module AgileToolBelt
       exit 1
     end
 
+    private
     def handle_response(response)
       if response.status >= 400
         errors = JSON.parse(response.errorMessages)
