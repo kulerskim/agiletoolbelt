@@ -43,9 +43,9 @@ module AgileToolBelt
 
       config = ParseConfig.new(ENV['HOME']+'/.agile_toolbelt')
 
-      @api_instance = AgileToolBelt.const_get(@class_name).new
+      @api_instance = AgileToolBelt.const_get(@class_name).new config[available_apis[@api]]
 
-      if @params.size+1 != @api_instance.method(@cmd).arity
+      if @params.size != @api_instance.method(@cmd).arity
         puts "Incorrect number of parameters for #{@cmd}"
         return
       end
@@ -55,7 +55,7 @@ module AgileToolBelt
         return
       end
 
-      @api_instance.send @cmd, config[available_apis[@api]], *@params
+      @api_instance.send @cmd, *@params
 
     end
 
