@@ -17,14 +17,12 @@ module AgileToolBelt
       @config["rep_owner"] = git_config[0];
       @config["rep_name"] = git_config[1];
 
-      @conn = Faraday.new(:url => @config["url"],
+      @conn = Faraday.new(:url => "#{@config["url"]}/repos/#{@config["rep_owner"]}/#{@config["rep_name"]}",
                           :proxy => @config["proxy"],
                           :ssl => {:verify => false}) do |faraday|
         faraday.request  :url_encoded
         faraday.adapter  Faraday.default_adapter
-        yield faraday if block_given?
       end
-      @api_url = "/repos/#{@config["rep_owner"]}/#{@config["rep_name"]}"
     end
 
     # = test
@@ -32,7 +30,6 @@ module AgileToolBelt
     def test
 
       response = @conn.get do |req|
-        req.url @api_url
         req.headers['Authorization'] = "token #{@config["git_token"]}"
       end
 
@@ -64,7 +61,7 @@ module AgileToolBelt
       }
 
       response = @conn.post do |req|
-        req.url "#{@api_url}/pulls"
+        req.url "/pulls"
         req.headers['Authorization'] = "token #{@config["git_token"]}"
         req.body = pull_request.to_json
       end
@@ -96,7 +93,7 @@ module AgileToolBelt
       data = {"state"=>"closed"}
 
       response = @conn.patch do |req|
-        req.url "#{@api_url}/pulls/#{number}"
+        req.url "/pulls/#{number}"
         req.headers['Authorization'] = "token #{@config["git_token"]}"
         req.body = data.to_json
       end
@@ -116,13 +113,14 @@ module AgileToolBelt
       # Standarize output of problems
       def connection_failed exception
         puts "Failed due to #{exception.message}"
+        puts "Exception details:\n\n#{exception.to_s}"
       end
 
       # = get_pull_requests
       # return parsed pull requests or raise an exception
       def get_pull_requests branch_name
         response = @conn.get do |req|
-          req.url "#{@api_url}/pulls"
+          req.url "/pulls"
           req.headers['Authorization'] = "token #{@config["git_token"]}"
         end
         handle_response response
@@ -152,8 +150,8 @@ module AgileToolBelt
           end
         end
 
-        if errors.empty? && response.status != expected_code
-          errors.push "HTTP: Invalid response code (#{response.status}) when fetching pull request"
+        if response.status != expected_code
+          errors.shift "HTTP: Invalid response code (#{response.status}) when fetching pull request"
         end
 
         return parsed if errors.empty?
