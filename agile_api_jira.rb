@@ -13,7 +13,7 @@ module AgileToolBelt
         faraday.request  :url_encoded             # form-encode POST params
         #faraday.response :logger                  # log requests to STDOUT
         faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
-        faraday.proxy ENV['http_proxy']
+        faraday.proxy @config["proxy"]
       end
     end
 
