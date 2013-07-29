@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require "rubygems"
 require "parseconfig"
 
@@ -60,6 +61,7 @@ module AgileToolBelt
 
       @api_instance.send @cmd, *@params
 
+      return 0
     end
 
     def class_exists?(class_name)
