@@ -40,11 +40,11 @@ module AgileToolBelt
       data = JSON.parse response.body
       puts "Connection to #{data["name"]} successful"
 
-      return 0
+      exit 0
 
     rescue Exception => e
       connection_failed e
-      return 1
+      exit 1
     end
 
     # = Starts a new pull request
@@ -70,11 +70,11 @@ module AgileToolBelt
       handle_response response, 201
 
       puts "Pull request for #{branch_name} opened"
-      return 0
+      exit 0
 
     rescue Exception => e
       connection_failed e
-      return 1
+      exit 1
     end
 
     # = Closes existing pull request
@@ -102,11 +102,11 @@ module AgileToolBelt
       handle_response response
 
       puts "Pull request #{number} for #{branch_name} closed"
-      return 0
+      exit 0
 
     rescue Exception => e
       connection_failed e
-      return 1
+      exit 1
     end
 
     private
