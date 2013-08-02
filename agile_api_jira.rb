@@ -82,6 +82,8 @@ module AgileToolBelt
           end
         end
 
+        errors.unshift "JIRA - HTTP: Invalid response code (#{response.status})"
+
         raise errors.join()
       else
         if response.status == 204
