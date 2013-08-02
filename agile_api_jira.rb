@@ -66,8 +66,23 @@ module AgileToolBelt
     # Handle JIRA API response
     def handle_response(response)
       if response.status >= 400
-        errors = JSON.parse(response.errors)
-        raise  errors.join()
+        errors = []
+
+        begin
+          parsed = JSON.parse response.body
+        rescue
+          errors.push "Could not parse response body"
+        end
+
+        if parsed.instance_of? Hash
+          if parsed.has_key? "errors"
+            parsed["errors"].each do |error|
+              errors.push error
+            end
+          end
+        end
+
+        raise errors.join()
       else
         if response.status == 204
           return 0
